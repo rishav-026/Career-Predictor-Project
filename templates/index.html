@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Career Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="star-field" id="stars"></div>
+  <div class="background-decor">
+    <div class="circle circle1"></div>
+    <div class="circle circle2"></div>
+    <div class="circle circle3"></div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h1 class="title">Career <span>Predictor</span></h1>
+      <p class="subtitle">Upload your dataset to check model accuracy</p>
+
+      <form action="/predict" method="post" enctype="multipart/form-data">
+        <div class="upload-box" id="drop-area">
+          <div class="upload-icon">⬆</div>
+          <p><strong>Drop your file here</strong><br>or click to browse files</p>
+
+          <input type="file" name="file" id="fileElem" accept=".csv" required />
+
+          <!-- Button 1: Choose File -->
+          <button type="button" class="select-btn" onclick="document.getElementById('fileElem').click();">
+            Choose File
+          </button>
+
+          <!-- Button 2: Evaluate Predictions -->
+          <button type="submit" class="select-btn" style="margin-top: 10px;">
+            Evaluate Predictions →
+          </button>
+
+          <small>Only CSV files are supported</small>
+          <p id="statusMsg" class="status-msg"></p>
+        </div>
+      </form>
+
+      {% if accuracy %}
+        <div class="accuracy-box">
+          <p><strong>Model Accuracy:</strong> {{ accuracy }}%</p>
+          <a href="{{ download_link }}" class="download-btn">⬇ Download Predictions CSV</a>
+        </div>
+      {% endif %}
+
+      {% if dropped_rows > 0 %}
+        <p style="color: red;">⚠️ {{ dropped_rows }} rows were skipped due to missing or invalid data.</p>
+      {% endif %}
+
+      {% if tables %}
+        <div class="result-table">
+          <h3>Sample Predictions</h3>
+          <div class="table-container">
+            {{ tables|safe }}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+  {% if tables %}
+  <script>
+    // Scroll to top after results render
+    window.onload = function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+  </script>
+  {% endif %}
+</body>
+</html>
