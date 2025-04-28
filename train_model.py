@@ -14,7 +14,7 @@ df.columns = df.columns.str.strip()
 target = "What would you like to become when you grow up"
 df = df.dropna(subset=[target])
 
-# Convert string columns (strip spaces)
+# Strip whitespace from all string columns
 for col in df.columns:
     if df[col].dtype == "object":
         df[col] = df[col].astype(str).str.strip()
@@ -43,9 +43,6 @@ df = df.drop(columns=["Timestamp", "Tech-Savviness"], errors="ignore")
 # Drop rows with missing values
 df = df.dropna()
 
-# Check class balance
-print("Original Class Distribution:\n", df[target].value_counts())
-
 # Balance the dataset (undersampling)
 grouped = [df[df[target] == label] for label in df[target].unique()]
 min_count = min(len(g) for g in grouped)
@@ -55,7 +52,20 @@ df_balanced = pd.concat([
     for g in grouped
 ])
 
-print("\nBalanced Class Distribution:\n", df_balanced[target].value_counts())
+# Save fill values from balanced clean data
+fill_values = {
+    "Academic Performance (CGPA/Percentage)": df_balanced["Academic Performance (CGPA/Percentage)"].mean(),
+    "Participation in Extracurricular Activities": "None",
+    "Previous Work Experience (If Any)": "None",
+    "Risk-Taking Ability": 2,
+    "Leadership Experience": "None",
+    "Networking & Social Skills": "Average",
+    "Daily Water Intake (in Litres)": df_balanced["Daily Water Intake (in Litres)"].mean(),
+    "Number of Siblings": df_balanced["Number of Siblings"].median(),
+}
+
+os.makedirs("improved_model_v2", exist_ok=True)
+joblib.dump(fill_values, "improved_model_v2/fill_values.pkl")
 
 # Train the model
 predictor = TabularPredictor(
@@ -73,30 +83,17 @@ predictor = TabularPredictor(
 print("\nModel Leaderboard:")
 print(predictor.leaderboard(silent=True))
 
-# Predict on training data (optional sanity check)
+# Predict on training data for sanity check
 df_to_predict = df_balanced.drop(columns=[target])
-
-# Predict separately without modifying the original
 predictions = predictor.predict(df_to_predict)
+
 sample_df = df_balanced.copy()
 sample_df["Predicted Career Goal"] = predictions
-
-print("\nSample Predictions:")
-print(sample_df[[target, "Predicted Career Goal"]].head(10))
-
 acc = accuracy_score(sample_df[target], sample_df["Predicted Career Goal"])
 print(f"\nTraining Accuracy: {acc * 100:.2f}%")
 
-# Evaluate accuracy
-print("\nEvaluation Metrics:")
-predictor.evaluate(df_balanced)
-
-print("\n✅ Training complete. Model saved to 'improved_model_v2/'")
-
-# Save features used in training (before adding predictions)
+# Save used features
 used_features = [col for col in df_balanced.columns if col not in [target, "Predicted Career Goal"]]
-
-os.makedirs("improved_model_v2", exist_ok=True)
 joblib.dump(used_features, "improved_model_v2/used_features.pkl")
 
-print("\n✅ Training complete. Model and features saved to 'improved_model_v2/'")
+print("\n✅ Training complete. Model and artifacts saved to 'improved_model_v2/'")

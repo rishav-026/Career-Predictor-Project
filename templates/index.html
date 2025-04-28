@@ -16,7 +16,7 @@
   <div class="container">
     <div class="card">
       <h1 class="title">Career <span>Predictor</span></h1>
-      <p class="subtitle">Upload your dataset to check model accuracy</p>
+      <p class="subtitle">Upload your dataset to predict careers</p>
 
       <form action="/predict" method="post" enctype="multipart/form-data">
         <div class="upload-box" id="drop-area">
@@ -40,15 +40,14 @@
         </div>
       </form>
 
-      {% if accuracy %}
+      {% if download_link %}
         <div class="accuracy-box">
-          <p><strong>Model Accuracy:</strong> {{ accuracy }}%</p>
           <a href="{{ download_link }}" class="download-btn">⬇ Download Predictions CSV</a>
         </div>
       {% endif %}
 
       {% if dropped_rows > 0 %}
-        <p style="color: red;">⚠️ {{ dropped_rows }} rows were skipped due to missing or invalid data.</p>
+        <p style="color: red;">⚠ {{ dropped_rows }} rows were skipped due to missing or invalid data.</p>
       {% endif %}
 
       {% if tables %}
